@@ -1,4 +1,3 @@
-import copy
 from enum import Enum
 from functools import reduce
 from typing import TypedDict
