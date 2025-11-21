@@ -1,3 +1,7 @@
+##############################
+# INPUT BUCKET CONFIGURATION #
+##############################
+
 resource "aws_s3_bucket" "input_bucket" {
 	bucket = "itg-stamdb-input"
 }
@@ -15,8 +19,39 @@ resource "aws_s3_bucket_lifecycle_configuration" "input_lifecycle" {
 	}
 }
 
-resource "aws_s3_bucket_notification" "input_notification" {
+resource "aws_s3_bucket_notification" "input_notifications" {
+  for_each = toset([".sm", ".ssc"])
+
 	bucket = aws_s3_bucket.input_bucket.id
 
-	# TODO create sqs queue
+  queue {
+    queue_arn     = aws_sqs_queue.input_queue.arn
+    events        = ["s3:ObjectCreated:*"]
+    filter_suffix = each.value
+  }
+}
+
+###############################
+# OUTPUT BUCKET CONFIGURATION #
+###############################
+
+resource "aws_s3_bucket" "output_bucket" {
+  bucket = "itg-stamdb-output"
+}
+
+resource "aws_s3_bucket_public_access_block" "output_public_access" {
+  bucket = aws_s3_bucket.output_bucket.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_versioning" "output_versioning" {
+  bucket = aws_s3_bucket.output_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
