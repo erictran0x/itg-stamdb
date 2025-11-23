@@ -62,6 +62,31 @@ locals {
         ]
       })
     }
+    itg_stamdb_search_dbstream_trigger = {
+      name        = "ITGStamDBSearchTrigger"
+      description = "Policy for Lambda function to get dynamodb stream data"
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "dynamodb:DescribeStream",
+              "dynamodb:GetRecords",
+              "dynamodb:GetShardIterator"
+            ],
+            Resource = aws_dynamodb_table.this.stream_arn
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "dynamodb:ListStreams"
+            ],
+            Resource = "*"
+          }
+        ]
+      })
+    }
     itg_stamdb_search_query = { # allow dynamodb reads
       name        = "ITGStamDBSearchQuery"
       description = "Policy for Lambda function to perform batchgetitem"
