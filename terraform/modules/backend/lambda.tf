@@ -34,10 +34,12 @@ locals {
       }
     }
     itg_stamdb_processor = {
-      layers = ["stamina-breakdown-parser"]
+      layers  = ["stamina-breakdown-parser"]
+      timeout = 15
       environment = {
-        S3_INPUT_BUCKET  = aws_s3_bucket.input_bucket.bucket
-        FAILED_QUEUE_URL = aws_sqs_queue.failed_queue.id
+        S3_BUCKET_OUTPUT = aws_s3_bucket.output.bucket
+        FAILED_QUEUE_URL = aws_sqs_queue.failed.id
+        DYNAMODB_TABLE   = aws_dynamodb_table.this.name
       }
     }
   }
@@ -77,7 +79,7 @@ locals {
         ]
       })
     }
-    itg_stamdb_processor = { # allow sqs read/writes, logs writes, s3 reads, dynamodb writes
+    itg_stamdb_processor = { # allow sqs read/writes, logs writes, s3 input reads, s3 output writes, dynamodb writes
       name        = "ITGStamDBProcessorPolicy"
       description = "Policy for Lambda function to access SQS queues and other things"
       policy = jsonencode({
@@ -91,8 +93,8 @@ locals {
               "sqs:GetQueueAttributes"
             ]
             Resource = [
-              aws_sqs_queue.input_queue.arn,
-              aws_sqs_queue.failed_queue.arn
+              aws_sqs_queue.input.arn,
+              aws_sqs_queue.failed.arn
             ]
           },
           {
@@ -111,8 +113,18 @@ locals {
               "s3:ListBucket"
             ]
             Resource = [
-              aws_s3_bucket.input_bucket.arn,
-              "${aws_s3_bucket.input_bucket.arn}/*"
+              aws_s3_bucket.input.arn,
+              "${aws_s3_bucket.input.arn}/*"
+            ]
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "s3:PutObject"
+            ]
+            Resource = [
+              aws_s3_bucket.output.arn,
+              "${aws_s3_bucket.output.arn}/*"
             ]
           },
           {
@@ -144,6 +156,7 @@ resource "aws_lambda_layer_version" "dependencies" {
   layer_name = each.key
 
   compatible_runtimes = ["python3.13"]
+  source_code_hash    = filebase64sha256("${path.module}/lambda_layers/${each.key}.zip")
 }
 
 resource "aws_lambda_function" "functions" {
@@ -155,6 +168,7 @@ resource "aws_lambda_function" "functions" {
   runtime       = "python3.13"
   filename      = data.archive_file.lambda_functions[each.key].output_path
   layers        = [for name in lookup(each.value, "layers", []) : aws_lambda_layer_version.dependencies[name].arn]
+  timeout       = lookup(each.value, "timeout", 3)
 
   source_code_hash = data.archive_file.lambda_functions[each.key].output_base64sha256
 
