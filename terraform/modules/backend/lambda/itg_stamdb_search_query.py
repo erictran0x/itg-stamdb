@@ -1,9 +1,10 @@
+from decimal import Decimal
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from os import environ
 import boto3
 import json
 
-HOST = environ['OPENSEARCH_HOST']
+HOST = environ['OPENSEARCH_HOST'].replace('https://', '')
 USER = environ['OPENSEARCH_USER']
 PASS = environ['OPENSEARCH_PASS']
 
@@ -27,7 +28,7 @@ SEARCH_PARAM = 'search'
 def create_request_items(chart_hashes: list[str]):
     return { DYNAMODB_TABLE_NAME: {
         'Keys': [
-            {'chart_hash': {'S': x}} for x in chart_hashes
+            {'chart_hash': x} for x in chart_hashes
         ],
         'ConsistentRead': False
     }} if len(chart_hashes) > 0 else None
@@ -37,22 +38,9 @@ def convert_dynamodb_record(dynamodb_image):
         return {}
 
     def _deserialize_attribute(attr_value):
-        if 'S' in attr_value:
-            return attr_value['S']
-        elif 'N' in attr_value:
-            val = attr_value['N']
-            if '.' in val:
-                return float(val)
-            return int(val)
-        elif 'BOOL' in attr_value:
-            return attr_value['BOOL']
-        elif 'NULL' in attr_value:
-            return None
-        elif 'L' in attr_value:
-            return [_deserialize_attribute(v) for v in attr_value['L']]
-        elif 'M' in attr_value:
-            return {k: _deserialize_attribute(v) for k, v in attr_value['M'].items()}
-        return None
+        if isinstance(attr_value, Decimal):
+            attr_value = int(attr_value) if attr_value == attr_value.to_integral_value() else float(attr_value)
+        return attr_value
 
     return {
         k: _deserialize_attribute(v)
@@ -60,8 +48,8 @@ def convert_dynamodb_record(dynamodb_image):
     }
 
 def lambda_handler(event, context):
-    query_params = event['queryStringParameters']
-    if SEARCH_PARAM not in query_params:
+    query_params = event.get('queryStringParameters')
+    if query_params is None or SEARCH_PARAM not in query_params:
         return {
             'isBase64Encoded': False,
             'statusCode': 400,
@@ -76,10 +64,12 @@ def lambda_handler(event, context):
         }}}
     }
     search_response = client.search(index=INDEX_NAME, body=body)
+    print(f'{search_response=}')
     request_items = create_request_items(
-        map(lambda x: x['_source']['chart_hash'], search_response['hits']['hits'])
+        list(map(lambda x: x['_source']['chart_hash'], search_response['hits']['hits']))
     )
-    db_response = dynamodb.batch_get_item(request_items)
+    print(f'{request_items=}')
+    db_response = dynamodb.batch_get_item(RequestItems=request_items)
     response = {}
     if 'Responses' in db_response and DYNAMODB_TABLE_NAME in db_response['Responses']:
         response['entries'] = list(map(
@@ -89,7 +79,7 @@ def lambda_handler(event, context):
     if 'UnprocessedKeys' in db_response and db_response['UnprocessedKeys']:
         response['unprocessed'] = list(map(
             lambda x: x['chart_hash']['S'],
-            db_response['UnprocessedKeys'][DYNAMODB_TABLE_NAME]
+            db_response['UnprocessedKeys'][DYNAMODB_TABLE_NAME]['Keys']
         ))
     return {
         'isBase64Encoded': False,

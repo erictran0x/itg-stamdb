@@ -1,7 +1,7 @@
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from os import environ
 
-HOST = environ['OPENSEARCH_HOST']
+HOST = environ['OPENSEARCH_HOST'].replace('https://', '')
 USER = environ['OPENSEARCH_USER']
 PASS = environ['OPENSEARCH_PASS']
 
