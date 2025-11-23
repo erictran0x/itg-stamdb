@@ -5,14 +5,14 @@ resource "aws_apigatewayv2_api" "this" {
 
   cors_configuration {
     allow_methods = [ "GET", "POST" ]
-    allow_origins = [ var.cloudfront_distribution_url ]
+    allow_origins = [ "https://${var.cloudfront_distribution_url}" ]
   }
 }
 
 resource "aws_apigatewayv2_integration" "search_title" {
   api_id = aws_apigatewayv2_api.this.id
 
-  integration_method = "GET"
+  integration_method = "POST"
   integration_type   = "AWS_PROXY"
   integration_uri    = aws_lambda_function.functions["itg_stamdb_search_query"].invoke_arn
 

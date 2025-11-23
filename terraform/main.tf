@@ -4,11 +4,6 @@ terraform {
 			source  = "hashicorp/aws"
 			version = "~> 6.0"
 		}
-
-    bonsai = {
-      source  = "omc/bonsai"
-      version = "~> 1.0"
-    }
 	}
 	backend "s3" {
 		bucket = "terraform-states-erictran"
@@ -26,21 +21,16 @@ provider "aws" {
 	region = "us-west-1"
 }
 
-provider "bonsai" {
-  alias = "this"
-  api_key = var.bonsai_api_key
-  api_token = var.bonsai_api_token
-}
-
 module "frontend" {
   source = "./modules/frontend"
 }
 
 module "backend" {
   source    = "./modules/backend"
-  providers = {
-    bonsai = bonsai.this
-  }
   
   cloudfront_distribution_url = module.frontend.cloudfront_distribution_domain_name
+
+  opensearch_url = var.opensearch_url
+  opensearch_user = var.opensearch_user
+  opensearch_pass = var.opensearch_pass
 }

@@ -20,14 +20,16 @@ resource "aws_s3_bucket_lifecycle_configuration" "input_lifecycle" {
 }
 
 resource "aws_s3_bucket_notification" "input_notifications" {
-  for_each = toset([".sm", ".ssc"])
+  bucket = aws_s3_bucket.input_bucket.id
 
-	bucket = aws_s3_bucket.input_bucket.id
-
-  queue {
-    queue_arn     = aws_sqs_queue.input_queue.arn
-    events        = ["s3:ObjectCreated:*"]
-    filter_suffix = each.value
+  dynamic "queue" {
+    for_each = toset([".sm", ".ssc"])
+    content {
+      id = "add-to-queue-on-${queue.value}-file-upload"
+      queue_arn     = aws_sqs_queue.input_queue.arn
+      events        = ["s3:ObjectCreated:*"]
+      filter_suffix = queue.value
+    }
   }
 }
 
