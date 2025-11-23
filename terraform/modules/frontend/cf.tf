@@ -26,9 +26,9 @@ resource "aws_cloudfront_distribution" "this" {
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = local.s3_origin_id
 
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
+    min_ttl = 0
+    # default_ttl            = 3600
+    # max_ttl                = 86400
     viewer_protocol_policy = "redirect-to-https"
 
     cache_policy_id          = data.aws_cloudfront_cache_policy.caching_optimized.id
