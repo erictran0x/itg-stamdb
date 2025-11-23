@@ -1,9 +1,11 @@
+from urllib.parse import unquote
 import json
 from typing import TypedDict
 import boto3
 
 from simfile.notes import NoteData
 from simfile.notes.count import *
+from simfile.timing import TimingData
 from simfile.types import Chart
 import simfile
 
@@ -25,9 +27,9 @@ bucket = s3.Bucket(environ['S3_BUCKET_OUTPUT'])  # itg-stamdb-output
 
 def convert_to_dynamodb_put_request(obj: dict):
     def typeof(x):
-        if type(x) == 'str':
+        if isinstance(x, str):
             return 'S'
-        if type(x) == 'int' or type(x) == 'float':
+        if isinstance(x, int | float):
             return 'N'
         return 'S'  # default for unhandled cases
     return {'PutRequest': {'Item': {
@@ -41,9 +43,9 @@ class ChartStreamData(TypedDict):
     stream_density: float
     stream_total: int
 
-def calculate_stream_data(chart: Chart) -> ChartStreamData:
+def calculate_stream_data(chart: Chart, timing_data: TimingData) -> ChartStreamData:
     rating = int(chart.meter) if chart.meter is not None else 1
-    bpm = float(chart.bpms[0].value) if len(chart.bpms) > 0 else 120  # TODO handle streams of multiple bpms
+    bpm = float(timing_data.bpms[0].value) if len(timing_data.bpms) > 0 else 120  # TODO handle streams of multiple bpms
     for beat_scaling in [1, 1.25, 1.5, 2]:
         bd = breakdown.get_breakdown(chart, beat_scaling)
         totals = breakdown.count_totals(bd)
@@ -71,15 +73,12 @@ def process_simfile(content):
     items = []
     chart: Chart
     for chart in sim.charts:
-        processed_chart = calculate_stream_data(chart)
-        items.append(convert_to_dynamodb_put_request({
-            'title': title,
-            'difficulty': chart.meter,
-            **processed_chart
-        }))
+        timing_data = TimingData(sim, chart)
+        processed_chart = calculate_stream_data(chart, timing_data)
         stream_note_data = breakdown.get_stream_note_data(chart)
         chart_hash = hash.generate_chart_hash(sim, chart)
         note_data = NoteData(chart)
+
         bucket.put_object(
             Key=f'{chart_hash}.json',
             Body=json.dumps({
@@ -96,16 +95,28 @@ def process_simfile(content):
                 }
             })
         )
-    dynamodb.batch_write_item({DYNAMODB_TABLE: items})  # i assume items is small enough for every simfile - max 5 charts per simfile
+        items.append(convert_to_dynamodb_put_request({
+            'chart_hash': chart_hash,
+            'title': title,
+            'difficulty': int(chart.meter),
+            **processed_chart
+        }))
+    print('batchwriteitem object:')
+    print({DYNAMODB_TABLE: items})
+    dynamodb.batch_write_item(RequestItems={DYNAMODB_TABLE: items})  # i assume items is small enough for every simfile - max 5 charts per simfile
 
 def lambda_handler(event, context):
     for sqs_record in event['Records']:
-        s3_notif = sqs_record['body']
+        s3_notif = json.loads(sqs_record['body'])
+        if 'Records' not in s3_notif:
+            continue
         for s3_record in s3_notif['Records']:
             bucket_name = s3_record['s3']['bucket']['name']
-            object_key = s3_record['s3']['object']['key']
+            object_key = s3_record['s3']['object']['key'].replace('+', '%20')
+            object_key = unquote(object_key)
 
-            response = s3.get_object(Bucket=bucket_name, Key=object_key)
+            s3_object = s3.Object(bucket_name, object_key)
+            response = s3_object.get()
             content = response['Body'].read().decode('utf-8')
 
             process_simfile(content)
