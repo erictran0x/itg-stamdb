@@ -33,14 +33,18 @@ class Stream(TypedDict):
     note_data: list[int]
 
 
-def count_totals(breakdown: Breakdown) -> list[dict[str, int]]:
-    return list(map(
+def count_totals(breakdown: Breakdown) -> dict[str, int]:
+    totals = list(map(
         lambda x: {x: sum(list(map(
             lambda y: y['count'],
             filter(lambda y: y['type'].name == x, breakdown)
         )))},
         BreakdownSectionType.__members__.keys()
     ))
+    result = {}
+    for total in totals:
+        result.update(total)
+    return result
 
 
 def format_breakdown_to_string(breakdown: Breakdown) -> str:
