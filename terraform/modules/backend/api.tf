@@ -4,8 +4,8 @@ resource "aws_apigatewayv2_api" "this" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_methods = [ "GET", "POST" ]
-    allow_origins = [ "https://${var.cloudfront_distribution_url}" ]
+    allow_methods = ["GET", "POST"]
+    allow_origins = ["https://${var.cloudfront_distribution_url}"]
   }
 }
 
@@ -33,12 +33,14 @@ resource "aws_apigatewayv2_route" "search_title" {
   api_id = aws_apigatewayv2_api.this.id
 
   route_key = "GET /search-title"
+  target    = "integrations/${aws_apigatewayv2_integration.search_title.id}"
 }
 
 resource "aws_apigatewayv2_route" "get_by_hashes" {
   api_id = aws_apigatewayv2_api.this.id
 
   route_key = "POST /get-by-hashes"
+  target    = "integrations/${aws_apigatewayv2_integration.get_by_hashes.id}"
 }
 
 resource "aws_apigatewayv2_stage" "default" {
