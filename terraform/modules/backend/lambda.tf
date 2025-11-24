@@ -12,6 +12,11 @@ locals {
         DYNAMODB_TABLE = aws_dynamodb_table.this.name
       }
     }
+    itg_stamdb_db_queryratingsortbpm = {
+      environment = {
+        DYNAMODB_TABLE = aws_dynamodb_table.this.name
+      }
+    }
     itg_stamdb_search_dbstream_trigger = {
       layers = ["opensearchpy"]
       environment = {
@@ -58,6 +63,25 @@ locals {
               "dynamodb:GetItem"
             ]
             Resource = aws_dynamodb_table.this.arn
+          }
+        ]
+      })
+    }
+    itg_stamdb_db_queryratingsortbpm = { # allow dynamodb reads
+      name        = "ITGStamDBQueryRatingSortBPMPolicy"
+      description = "Policy for Lambda function to perform query"
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "dynamodb:Query"
+            ]
+            Resource = [
+              aws_dynamodb_table.this.arn,
+              "${aws_dynamodb_table.this.arn}/index/*"
+            ]
           }
         ]
       })

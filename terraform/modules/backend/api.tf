@@ -19,6 +19,16 @@ resource "aws_apigatewayv2_integration" "search_title" {
   payload_format_version = "2.0"
 }
 
+resource "aws_apigatewayv2_integration" "query" {
+  api_id = aws_apigatewayv2_api.this.id
+
+  integration_method = "POST"
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.functions["itg_stamdb_db_queryratingsortbpm"].invoke_arn
+
+  payload_format_version = "2.0"
+}
+
 resource "aws_apigatewayv2_integration" "get_by_hashes" {
   api_id = aws_apigatewayv2_api.this.id
 
@@ -34,6 +44,13 @@ resource "aws_apigatewayv2_route" "search_title" {
 
   route_key = "GET /search-title"
   target    = "integrations/${aws_apigatewayv2_integration.search_title.id}"
+}
+
+resource "aws_apigatewayv2_route" "query" {
+  api_id = aws_apigatewayv2_api.this.id
+
+  route_key = "GET /query"
+  target    = "integrations/${aws_apigatewayv2_integration.query.id}"
 }
 
 resource "aws_apigatewayv2_route" "get_by_hashes" {
@@ -53,6 +70,7 @@ resource "aws_apigatewayv2_stage" "default" {
 resource "aws_lambda_permission" "permissions" {
   for_each = toset([
     "itg_stamdb_db_batchgetitem",
+    "itg_stamdb_db_queryratingsortbpm",
     "itg_stamdb_search_query"
   ])
 
