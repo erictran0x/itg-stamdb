@@ -37,4 +37,6 @@ resource "aws_lambda_event_source_mapping" "trigger" {
   function_name    = aws_lambda_function.functions["itg_stamdb_search_dbstream_trigger"].arn
 
   starting_position = "TRIM_HORIZON"
+
+  maximum_retry_attempts = 3
 }
