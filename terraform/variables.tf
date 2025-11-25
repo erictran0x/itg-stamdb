@@ -3,7 +3,7 @@ variable "opensearch_user" {
 }
 
 variable "opensearch_pass" {
-  type = string
+  type      = string
   sensitive = true
 }
 

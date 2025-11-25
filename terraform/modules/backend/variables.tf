@@ -1,13 +1,9 @@
-variable "cloudfront_distribution_url" {
-  type = string
-}
-
 variable "opensearch_user" {
   type = string
 }
 
 variable "opensearch_pass" {
-  type = string
+  type      = string
   sensitive = true
 }
 

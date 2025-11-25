@@ -5,7 +5,7 @@ resource "aws_apigatewayv2_api" "this" {
 
   cors_configuration {
     allow_methods = ["GET", "POST"]
-    allow_origins = ["https://${var.cloudfront_distribution_url}"]
+    allow_origins = ["*"]
   }
 }
 
@@ -80,4 +80,11 @@ resource "aws_lambda_permission" "permissions" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.functions[each.value].function_name
   principal     = "apigateway.amazonaws.com"
+}
+
+output "api" {
+  value = {
+    endpoint = split("://", aws_apigatewayv2_api.this.api_endpoint)[1]
+    name     = aws_apigatewayv2_stage.default.name
+  }
 }
