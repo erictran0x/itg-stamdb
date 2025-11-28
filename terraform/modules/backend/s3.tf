@@ -50,6 +50,27 @@ resource "aws_s3_bucket_public_access_block" "output_public_access" {
   restrict_public_buckets = false
 }
 
+resource "aws_s3_bucket_policy" "output_policy" {
+  bucket = aws_s3_bucket.output.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Principal = "*"
+        Resource = [
+          aws_s3_bucket.output.arn,
+          "${aws_s3_bucket.output.arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
 resource "aws_s3_bucket_versioning" "output_versioning" {
   bucket = aws_s3_bucket.output.id
 
