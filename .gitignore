@@ -1,3 +1,4 @@
 .vscode
 terraform/.terraform*
+terraform/*.auto.tfvars
 terraform/modules/backend/lambda/*.zip

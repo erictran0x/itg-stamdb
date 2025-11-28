@@ -6,7 +6,7 @@ import boto3
 from simfile.notes import NoteData
 from simfile.notes.count import *
 from simfile.timing import TimingData
-from simfile.types import Chart
+from simfile.types import Simfile, Chart
 import simfile
 
 from os import environ
@@ -67,9 +67,22 @@ def calculate_stream_data(chart: Chart, timing_data: TimingData) -> ChartStreamD
     }
 
 def process_simfile(content):
-    rating_bpm_pattern = r'^\[(\d+)\] \[(\d+)\]\s'  # example: [17] [180] 
+    RATING_BPM_PATTERN = r'^\[(\d+)\] \[(\d+)\]\s'  # example: [17] [180]
+    NON_EXPERT_DIFFICULTY_NAMES = {
+        'Beginner': 'Novice',
+        'Easy': 'Easy',
+        'Medium': 'Medium',
+        'Hard': 'Hard',
+        'Edit': 'Edit'
+    }
+
     sim = simfile.loads(content)
-    title = re.sub(rating_bpm_pattern, '', sim.title)
+    title = f'{re.sub(RATING_BPM_PATTERN, '', sim.title)} {sim.subtitle}'.strip()
+    def format_title(chart: Chart):
+        if chart.difficulty in NON_EXPERT_DIFFICULTY_NAMES:
+            return f'{title} ({NON_EXPERT_DIFFICULTY_NAMES[chart.difficulty]})'
+        return title
+    
     items = []
     chart: Chart
     for chart in sim.charts:
@@ -82,7 +95,7 @@ def process_simfile(content):
         bucket.put_object(
             Key=f'{chart_hash}.json',
             Body=json.dumps({
-                'title': title,
+                'title': format_title(chart),
                 'artist': sim.artist,
                 **processed_chart,
                 'credit': chart.description,
@@ -95,28 +108,37 @@ def process_simfile(content):
                 }
             })
         )
-        items.append(convert_to_dynamodb_put_request({
+        item_to_add = {
             'chart_hash': chart_hash,
-            'title': title,
-            'difficulty': int(chart.meter),
+            'title': format_title(chart),
             **processed_chart
-        }))
-    print('batchwriteitem object:')
-    print({DYNAMODB_TABLE: items})
+        }
+        items.append(convert_to_dynamodb_put_request(item_to_add))
+        print(f'Adding item:', item_to_add)
     dynamodb.batch_write_item(RequestItems={DYNAMODB_TABLE: items})  # i assume items is small enough for every simfile - max 5 charts per simfile
 
 def lambda_handler(event, context):
+    print(f'{len(event['Records'])} messages found')
+    failed_messages = []
     for sqs_record in event['Records']:
-        s3_notif = json.loads(sqs_record['body'])
-        if 'Records' not in s3_notif:
-            continue
-        for s3_record in s3_notif['Records']:
-            bucket_name = s3_record['s3']['bucket']['name']
-            object_key = s3_record['s3']['object']['key'].replace('+', '%20')
-            object_key = unquote(object_key)
+        message_id = sqs_record['messageId']
+        try:
+            s3_notif = json.loads(sqs_record['body'])
+            if 'Records' not in s3_notif:
+                continue
+            for s3_record in s3_notif['Records']:
+                bucket_name = s3_record['s3']['bucket']['name']
+                object_key = s3_record['s3']['object']['key'].replace('+', '%20')
+                object_key = unquote(object_key)
 
-            s3_object = s3.Object(bucket_name, object_key)
-            response = s3_object.get()
-            content = response['Body'].read().decode('utf-8')
+                s3_object = s3.Object(bucket_name, object_key)
+                response = s3_object.get()
+                content = response['Body'].read().decode('utf-8')
 
-            process_simfile(content)
+                process_simfile(content)
+        except Exception as e:
+            print(f'ERROR processing message id {message_id}: {e}')
+            failed_messages.append({ 'itemIdentifier': message_id })
+    if len(failed_messages) > 0:
+        print(f'{failed_messages=}')
+        return { 'batchItemFailures': failed_messages }
