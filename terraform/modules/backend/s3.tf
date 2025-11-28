@@ -41,6 +41,15 @@ resource "aws_s3_bucket" "output" {
   bucket = "itg-stamdb-output"
 }
 
+resource "aws_s3_bucket_cors_configuration" "output_cors" {
+  bucket = aws_s3_bucket.output.id
+
+  cors_rule {
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "output_public_access" {
   bucket = aws_s3_bucket.output.id
 
