@@ -9,8 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Search_titleRouteImport } from './routes/search_title'
+import { Route as Search_ratingRouteImport } from './routes/search_rating'
 import { Route as IndexRouteImport } from './routes/index'
 
+const Search_titleRoute = Search_titleRouteImport.update({
+  id: '/search_title',
+  path: '/search_title',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Search_ratingRoute = Search_ratingRouteImport.update({
+  id: '/search_rating',
+  path: '/search_rating',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +31,50 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/search_rating': typeof Search_ratingRoute
+  '/search_title': typeof Search_titleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/search_rating': typeof Search_ratingRoute
+  '/search_title': typeof Search_titleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/search_rating': typeof Search_ratingRoute
+  '/search_title': typeof Search_titleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/search_rating' | '/search_title'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/search_rating' | '/search_title'
+  id: '__root__' | '/' | '/search_rating' | '/search_title'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  Search_ratingRoute: typeof Search_ratingRoute
+  Search_titleRoute: typeof Search_titleRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search_title': {
+      id: '/search_title'
+      path: '/search_title'
+      fullPath: '/search_title'
+      preLoaderRoute: typeof Search_titleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search_rating': {
+      id: '/search_rating'
+      path: '/search_rating'
+      fullPath: '/search_rating'
+      preLoaderRoute: typeof Search_ratingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  Search_ratingRoute: Search_ratingRoute,
+  Search_titleRoute: Search_titleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

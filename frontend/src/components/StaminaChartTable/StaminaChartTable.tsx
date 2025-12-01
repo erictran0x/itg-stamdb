@@ -1,13 +1,6 @@
-import { Heading, Box } from '@chakra-ui/react'
-import {
-  Table,
-  TableContainer,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-} from '@chakra-ui/table'
+import { Heading, Box, Table, Text, Container } from '@chakra-ui/react'
+import { useState, type PropsWithChildren } from 'react'
+import DetailedStaminaInfo from '../DetailedStaminaInfo'
 
 interface Song {
   chart_hash: string
@@ -19,70 +12,57 @@ interface Song {
   stream_breakdown: string
 }
 
-function StaminaChartTable({ data }: { data: any }) {
+function ToggleableRow({ song, children }: PropsWithChildren<{ song: Song }>) {
+  const [toggled, setToggled] = useState(false);
+  return (<>
+    <Table.Row onClick={() => setToggled(!toggled)}>
+      <Table.Cell display={{ base: 'none', md: 'table-cell' }}>{song.rating}</Table.Cell>
+      <Table.Cell display={{ base: 'none', md: 'table-cell' }}>{Math.round(song.bpm)}</Table.Cell>
+      <Table.Cell>
+        <Text display={{ base: 'block', md: 'none' }}>
+          [{song.rating}] [{song.bpm}]
+        </Text>
+        {song.title}
+      </Table.Cell>
+      <Table.Cell display={{ base: 'none', md: 'table-cell' }}>{song.stream_total}</Table.Cell>
+      <Table.Cell display={{ base: 'none', md: 'table-cell' }}>{(song.stream_density * 100).toFixed(2)}</Table.Cell>
+      <Table.Cell>
+        {song.stream_breakdown}
+        <Text display={{ base: 'block', md: 'none' }} fontStyle="italic">
+          {song.stream_total} total, {(song.stream_density * 100).toFixed(2)}%
+        </Text>
+      </Table.Cell>
+    </Table.Row>
+    {toggled && (
+      <Table.Cell colSpan={6}>
+        {children}
+      </Table.Cell>
+    )}
+  </>)
+}
+
+export default function StaminaChartTable({ data }: { data: any }) {
   return (
-    <Box p={6}>
-      <Heading as="h1" mb={6} textAlign="center">
-        ITG Stamina Database
-      </Heading>
-      <Box display="flex" justifyContent="center">
-        <TableContainer borderWidth="1px" borderColor="gray" borderRadius="md" overflowWrap="anywhere">
-          <Table variant="striped" colorScheme="blue" layout="fixed">
-            <Thead>
-              <Tr>
-                <Th px={20} py={20} borderBottomWidth={1} borderColor="gray">
-                  <b>Rating</b>
-                </Th>
-                <Th px={20} py={20} borderBottomWidth={1} borderColor="gray">
-                  <b>BPM</b>
-                </Th>
-                <Th px={20} py={20} borderBottomWidth={1} borderColor="gray"
-                  flex="1" whiteSpace="normal" wordBreak="break-word" maxW="40vw">
-                  <b>Title</b>
-                </Th>
-                <Th px={20} py={20} borderBottomWidth={1} borderColor="gray" isNumeric>
-                  <b>Total 16ths</b>
-                </Th>
-                <Th px={20} py={20} borderBottomWidth={1} borderColor="gray" isNumeric>
-                  <b>Density (%)</b>
-                </Th>
-                <Th px={20} py={20} borderBottomWidth={1} borderColor="gray"
-                  flex="1" whiteSpace="normal" wordBreak="break-word" maxW="40vw">
-                  <b>Stream Breakdown</b>
-                </Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {data.map((song: Song) => (
-                <Tr key={song.chart_hash}>
-                  <Td px={20} py={20} borderColor="gray">
-                    {song.rating}
-                  </Td>
-                  <Td px={20} py={20} borderColor="gray">
-                    {song.bpm}
-                  </Td>
-                  <Td px={20} py={20} borderColor="gray"
-                    flex="1" whiteSpace="normal" wordBreak="break-word" maxW="40vw">
-                    {song.title}
-                  </Td>
-                  <Td px={20} py={20} borderColor="gray" isNumeric>
-                    {song.stream_total}
-                  </Td>
-                  <Td px={20} py={20} borderColor="gray" isNumeric>
-                    {Number(song.stream_density * 100).toFixed(2)}
-                  </Td>
-                  <Td px={20} py={20} borderColor="gray"
-                    flex="1" whiteSpace="normal" wordBreak="break-word" maxW="40vw">
-                    {song.stream_breakdown}
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </Box>
+    <Box display="flex" justifyContent="center">
+      <Table.Root size="lg" variant="outline" interactive>
+        <Table.Header>
+          <Table.Row>
+            <Table.ColumnHeader display={{ base: 'none', md: 'table-cell' }}>Rating</Table.ColumnHeader>
+            <Table.ColumnHeader display={{ base: 'none', md: 'table-cell' }}>BPM</Table.ColumnHeader>
+            <Table.ColumnHeader>Title</Table.ColumnHeader>
+            <Table.ColumnHeader display={{ base: 'none', md: 'table-cell' }}>16ths</Table.ColumnHeader>
+            <Table.ColumnHeader display={{ base: 'none', md: 'table-cell' }}>Density (%)</Table.ColumnHeader>
+            <Table.ColumnHeader>Breakdown</Table.ColumnHeader>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {data.map((song: Song) => (
+            <ToggleableRow key={song.chart_hash} song={song}>
+              <DetailedStaminaInfo hash={song.chart_hash} />
+            </ToggleableRow>
+          ))}
+        </Table.Body>
+      </Table.Root>
     </Box>
   )
 }
-
-export default StaminaChartTable
