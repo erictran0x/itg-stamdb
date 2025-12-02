@@ -1,4 +1,5 @@
 import PageMainDatabase from '@/components/PageMainDatabase';
+import { Alert } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, getRouteApi, stripSearchParams } from '@tanstack/react-router'
 import z from 'zod';
@@ -36,6 +37,13 @@ function RouteComponent() {
   });
   if (isLoading)
     return <div>loading</div>;
+  if (isError)
+    return (
+      <Alert.Root status="error">
+        <Alert.Indicator />
+        <Alert.Title>{error.name}: {error.message}</Alert.Title>
+      </Alert.Root>
+    )
   console.log(data)
   return <PageMainDatabase data={data} />;
 }
