@@ -1,4 +1,4 @@
-import { Heading, Box, Table, Text, Container } from '@chakra-ui/react'
+import { Box, Table, Text } from '@chakra-ui/react'
 import { useState, type PropsWithChildren } from 'react'
 import DetailedStaminaInfo from '../DetailedStaminaInfo'
 
@@ -20,7 +20,7 @@ function ToggleableRow({ song, children }: PropsWithChildren<{ song: Song }>) {
       <Table.Cell display={{ base: 'none', md: 'table-cell' }}>{Math.round(song.bpm)}</Table.Cell>
       <Table.Cell>
         <Text display={{ base: 'block', md: 'none' }}>
-          [{song.rating}] [{song.bpm}]
+          [{song.rating}] [{Math.round(song.bpm)}]
         </Text>
         {song.title}
       </Table.Cell>
