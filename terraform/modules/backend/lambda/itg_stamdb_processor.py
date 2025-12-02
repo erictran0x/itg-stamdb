@@ -91,7 +91,14 @@ def process_simfile(content):
         stream_note_data = breakdown.get_stream_note_data(chart)
         chart_hash = hash.generate_chart_hash(sim, chart)
         note_data = NoteData(chart)
-
+        anchors = patterns.count_anchors(stream_note_data)
+        anchor_result = {}
+        for anchor in anchors:
+            for arrow, count in anchor.items():
+                arrow_key = f'ANCHOR_{arrow}'
+                if arrow_key not in anchor_result:
+                    anchor_result[arrow_key] = []
+                anchor_result[arrow_key].append(count)
         bucket.put_object(
             Key=f'{chart_hash}.json',
             Body=json.dumps({
@@ -104,7 +111,7 @@ def process_simfile(content):
                 'note_graph_points': density.get_density(sim, chart),
                 'pattern_data': {
                     **{ pattern.name: patterns.count_patterns(stream_note_data, pattern) for pattern in patterns.PatternType },
-                    **{ f'ANCHOR_{arrow}': count for arrow, count in patterns.count_anchors(stream_note_data).items() }
+                    **anchor_result
                 }
             })
         )
