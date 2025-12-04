@@ -23,14 +23,15 @@ def lambda_handler(event, context):
         if event_name in {'INSERT', 'MODIFY'}:
             new_image = record['dynamodb']['NewImage']
             title = new_image['title']['S']
-            client.index(
+            response = client.index(
                 index=INDEX_NAME,
                 body={'chart_hash': chart_hash, 'title': title},
                 id=chart_hash,
                 refresh=True
             )
         elif event_name == 'DELETE':
-            client.delete(
+            response = client.delete(
                 index=INDEX_NAME,
                 id=chart_hash
             )
+        print(response)
