@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Grid, Input, Button, Text, Accordion, Span } from '@chakra-ui/react'
+import { Box, Grid, Input, Button, Text, Accordion, Span, Checkbox } from '@chakra-ui/react'
 import { routeApi as routeApiRating } from '@/routes/search_rating';
 import { routeApi as routeApiTitle } from '@/routes/search_title';
 import { useNavigate } from '@tanstack/react-router';
@@ -8,6 +8,7 @@ interface FilterSettingsProps {
   rating?: number;
   bpm_from?: number;
   bpm_to?: number;
+  show_neighboring?: boolean;
   search?: string;
 }
 
@@ -21,6 +22,7 @@ function FilterSettings() {
   const [rating, setRating] = useState<number>(searchParams?.rating || 11)
   const [bpmFrom, setBpmFrom] = useState<number>(searchParams?.bpm_from || 120)
   const [bpmTo, setBpmTo] = useState<number>(searchParams?.bpm_to || 500)
+  const [showNeighboring, setShowNeighboring] = useState<boolean>(searchParams?.show_neighboring || true)
   const [title, setTitle] = useState<string>(searchParams?.search || '')
 
   const navigate = useNavigate();
@@ -29,7 +31,7 @@ function FilterSettings() {
     await navigate({
       to: '/search_rating',
       search: {
-        rating, bpm_from: bpmFrom, bpm_to: bpmTo
+        rating, bpm_from: bpmFrom, bpm_to: bpmTo, show_neighboring: showNeighboring
       }
     });
   };
@@ -39,7 +41,7 @@ function FilterSettings() {
     await navigate({
       to: '/search_title',
       search: {
-        title
+        search: title
       }
     });
   }
@@ -58,16 +60,26 @@ function FilterSettings() {
                 <Box as="form" onSubmit={handleSubmitA} borderWidth={{ base: 0, md: '1px' }} borderRadius={{ md: 'md' }} p={{ md: 4 }}>
                   <Box mb={4}>
                     <Text mb={2} textAlign="left">Rating:</Text>
-                    <Input
-                      type="number"
-                      min={11}
-                      max={43}
-                      value={rating}
-                      onChange={(e) => setRating(Number(e.target.value))}
-                      aria-label="Rating"
-                      borderWidth="1px"
-                      borderColor="gray.500"
-                    />
+                    <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={2}>
+                      <Input
+                        type="number"
+                        min={11}
+                        max={43}
+                        value={rating}
+                        onChange={(e) => setRating(Number(e.target.value))}
+                        aria-label="Rating"
+                        borderWidth="1px"
+                        borderColor="gray.500"
+                      />
+                      <Checkbox.Root
+                        checked={showNeighboring}
+                        onCheckedChange={(e) => setShowNeighboring(!!e.checked)}
+                      >
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control />
+                        <Checkbox.Label>Search for neighboring ratings</Checkbox.Label>
+                      </Checkbox.Root>
+                    </Grid>
                   </Box>
                   <Box mb={4}>
                     <Text mb={2} textAlign="left">BPM Range (from/to):</Text>
