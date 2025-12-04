@@ -39,6 +39,16 @@ resource "aws_apigatewayv2_integration" "get_by_hashes" {
   payload_format_version = "2.0"
 }
 
+resource "aws_apigatewayv2_integration" "count_songs" {
+  api_id = aws_apigatewayv2_api.this.id
+
+  integration_method = "POST"
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.functions["itg_stamdb_db_itemcount"].invoke_arn
+
+  payload_format_version = "2.0"
+}
+
 resource "aws_apigatewayv2_route" "search_title" {
   api_id = aws_apigatewayv2_api.this.id
 
@@ -60,6 +70,13 @@ resource "aws_apigatewayv2_route" "get_by_hashes" {
   target    = "integrations/${aws_apigatewayv2_integration.get_by_hashes.id}"
 }
 
+resource "aws_apigatewayv2_route" "count_songs" {
+  api_id = aws_apigatewayv2_api.this.id
+
+  route_key = "GET /count-songs"
+  target    = "integrations/${aws_apigatewayv2_integration.count_songs.id}"
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id = aws_apigatewayv2_api.this.id
 
@@ -70,6 +87,7 @@ resource "aws_apigatewayv2_stage" "default" {
 resource "aws_lambda_permission" "permissions" {
   for_each = toset([
     "itg_stamdb_db_batchgetitem",
+    "itg_stamdb_db_itemcount",
     "itg_stamdb_db_queryratingsortbpm",
     "itg_stamdb_search_query"
   ])

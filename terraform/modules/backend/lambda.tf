@@ -12,6 +12,11 @@ locals {
         DYNAMODB_TABLE = aws_dynamodb_table.this.name
       }
     }
+    itg_stamdb_db_itemcount = {
+      environment = {
+        DYNAMODB_TABLE = aws_dynamodb_table.this.name
+      }
+    }
     itg_stamdb_db_queryratingsortbpm = {
       environment = {
         DYNAMODB_TABLE = aws_dynamodb_table.this.name
@@ -61,6 +66,22 @@ locals {
             Action = [
               "dynamodb:BatchGetItem",
               "dynamodb:GetItem"
+            ]
+            Resource = aws_dynamodb_table.this.arn
+          }
+        ]
+      })
+    }
+    itg_stamdb_db_itemcount = {
+      name        = "ITGStamDBItemCountPolicy"
+      description = "Policy for Lambda function to perform describe table for item count"
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "dynamodb:DescribeTable"
             ]
             Resource = aws_dynamodb_table.this.arn
           }
