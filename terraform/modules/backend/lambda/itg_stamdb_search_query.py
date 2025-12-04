@@ -49,7 +49,7 @@ def convert_dynamodb_record(dynamodb_image):
 
 def lambda_handler(event, context):
     query_params = event.get('queryStringParameters')
-    if query_params is None or SEARCH_PARAM not in query_params:
+    if query_params is None or SEARCH_PARAM not in query_params or len(query_params) == 0:
         return {
             'isBase64Encoded': False,
             'statusCode': 400,
@@ -69,6 +69,15 @@ def lambda_handler(event, context):
         list(map(lambda x: x['_source']['chart_hash'], search_response['hits']['hits']))
     )
     print(f'{request_items=}')
+    if request_items is None:
+        return {
+            'isBase64Encoded': False,
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps({ 'response': { 'entries': [] } })
+        }
     db_response = dynamodb.batch_get_item(RequestItems=request_items)
     response = {}
     if 'Responses' in db_response and DYNAMODB_TABLE_NAME in db_response['Responses']:
