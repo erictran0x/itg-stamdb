@@ -4,18 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, getRouteApi, stripSearchParams } from '@tanstack/react-router'
 import z from 'zod';
 
-const defaultParams = {
-  search: '',
-};
-
-const searchSchema = z.object(Object.fromEntries(Object.entries(defaultParams).map(
-  ([k, v]) => [k, z.string().default(v)]
-)));
+const searchSchema = z.object({
+  search: z.string().default('')
+});
 
 export const Route = createFileRoute('/search_title')({
   validateSearch: searchSchema,
   search: {
-    middlewares: [stripSearchParams(defaultParams)]
+    middlewares: [stripSearchParams(searchSchema.parse({}))]
   },
   component: RouteComponent,
 })

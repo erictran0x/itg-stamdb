@@ -1,6 +1,6 @@
 import PageMainDatabase from '@/components/PageMainDatabase';
 import { Alert } from '@chakra-ui/react';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { createFileRoute, getRouteApi, stripSearchParams } from '@tanstack/react-router'
 import z from 'zod';
 
@@ -44,7 +44,7 @@ function RouteComponent() {
   });
 
   if (queries.some(query => query.isLoading)) {
-    return <div>Loading all data...</div>;
+    return <div>Loading data...</div>;
   }
 
   if (queries.some(query => query.isError)) {

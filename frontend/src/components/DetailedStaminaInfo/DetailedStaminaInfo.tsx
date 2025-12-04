@@ -1,9 +1,7 @@
 import { Alert, Box, Spinner } from "@chakra-ui/react"
 import { useQuery } from "@tanstack/react-query"
-import { Line, Scatter } from 'react-chartjs-2';
-import { getRelativePosition } from 'chart.js/helpers';
-import { Chart, type TooltipItem } from 'chart.js/auto';
-import { useRef } from "react";
+import { Scatter } from 'react-chartjs-2';
+import { type TooltipItem } from 'chart.js/auto';
 
 interface DetailedSong {
   artist: string,
@@ -192,7 +190,7 @@ function DensityGraph({ pattern_data, note_graph_points }: { pattern_data: any, 
     }
   }
   return (
-    <div style={{ width: '100%', maxHeight: '200px', margin: 'auto' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', width: '100%', height: '200px' }}>
       <Scatter
         id='ok'
         data={data}
