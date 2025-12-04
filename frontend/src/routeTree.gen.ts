@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Search_titleRouteImport } from './routes/search_title'
 import { Route as Search_ratingRouteImport } from './routes/search_rating'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
 const Search_titleRoute = Search_titleRouteImport.update({
@@ -23,6 +24,11 @@ const Search_ratingRoute = Search_ratingRouteImport.update({
   path: '/search_rating',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,30 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/search_rating': typeof Search_ratingRoute
   '/search_title': typeof Search_titleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/search_rating': typeof Search_ratingRoute
   '/search_title': typeof Search_titleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/search_rating': typeof Search_ratingRoute
   '/search_title': typeof Search_titleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/search_rating' | '/search_title'
+  fullPaths: '/' | '/about' | '/search_rating' | '/search_title'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/search_rating' | '/search_title'
-  id: '__root__' | '/' | '/search_rating' | '/search_title'
+  to: '/' | '/about' | '/search_rating' | '/search_title'
+  id: '__root__' | '/' | '/about' | '/search_rating' | '/search_title'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   Search_ratingRoute: typeof Search_ratingRoute
   Search_titleRoute: typeof Search_titleRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Search_ratingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   Search_ratingRoute: Search_ratingRoute,
   Search_titleRoute: Search_titleRoute,
 }
