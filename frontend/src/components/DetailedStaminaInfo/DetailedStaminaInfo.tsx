@@ -103,7 +103,6 @@ function ChartInfoAndPatternAnalysis({ data }: { data: DetailedSong }) {
 
 function DensityGraph({ pattern_data, note_graph_points }: { pattern_data: any, note_graph_points: number[] }) {
   const [streams, breaks] = splitNoteGraphPointsBySections(note_graph_points);
-  console.log(streams)
   const data = {
     datasets: [
       ...streams.map((points) => ({
@@ -160,18 +159,16 @@ function DensityGraph({ pattern_data, note_graph_points }: { pattern_data: any, 
         },
         callbacks: {
           title: (context: TooltipItem<any>[]) => {
-            const index = context[0].datasetIndex;
-            const isStream = index < streams.length;
-            return isStream ? `Stream ${index}` : `Break ${index - streams.length}`
+            if (context.length === 0) return;
+            return `Stream ${context[0].datasetIndex + 1}`;
           },
           label: (context: TooltipItem<any>) => {
             const index = context.datasetIndex;
-            const isStream = index < streams.length;
-            if (!isStream) return 0;
             const analysis = outputPatternAnalysis(
               getPatternsByIndex(pattern_data, index), streams[index].length
             );
             return [
+              `Total measures: ${streams[index].length} (bursts: ${streams[index].filter((x) => x[1] > 16).length})`,
               `Candles: ${analysis.candles} - ${analysis.candleDensity}`,
               `Boxes: ${analysis.boxes}`,
               `Anchors: ${analysis.anchors}`,
@@ -180,6 +177,9 @@ function DensityGraph({ pattern_data, note_graph_points }: { pattern_data: any, 
               `Triangles: ${analysis.triangles}`
             ]
           }
+        },
+        filter: (context: TooltipItem<any>) => {
+          return context.datasetIndex < streams.length;
         }
       }
     },
