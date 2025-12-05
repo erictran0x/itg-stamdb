@@ -58,6 +58,5 @@ function RouteComponent() {
       ))
   }
   const data = queries.flatMap(query => query.data);
-  console.log(data)
   return <PageMainDatabase data={data} />;
 }
