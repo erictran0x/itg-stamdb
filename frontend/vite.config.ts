@@ -13,4 +13,7 @@ export default defineConfig({
     react(),
     tsconfigPaths()
   ],
+  build: {
+    outDir: '../terraform/modules/frontend/s3_site'
+  }
 })

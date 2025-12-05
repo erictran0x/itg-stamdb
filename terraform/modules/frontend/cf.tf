@@ -20,6 +20,13 @@ resource "aws_cloudfront_distribution" "this" {
 
   default_root_object = "index.html"
 
+  custom_error_response {
+    error_code = 403
+
+    response_code      = 200
+    response_page_path = "/index.html"
+  }
+
   # s3 origin
   origin {
     domain_name              = aws_s3_bucket.frontend_bucket.bucket_regional_domain_name
