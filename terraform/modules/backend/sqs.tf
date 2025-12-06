@@ -1,7 +1,7 @@
 resource "aws_sqs_queue" "input" {
   name = "itg-stamdb-input-queue"
 
-  visibility_timeout_seconds = 360
+  visibility_timeout_seconds = 240
 }
 
 resource "aws_sqs_queue" "failed" {

@@ -45,7 +45,7 @@ locals {
     }
     itg_stamdb_processor = {
       layers  = ["stamina-breakdown-parser"]
-      timeout = 60
+      timeout = 180
       environment = {
         S3_BUCKET_OUTPUT = aws_s3_bucket.output.bucket
         FAILED_QUEUE_URL = aws_sqs_queue.failed.id
