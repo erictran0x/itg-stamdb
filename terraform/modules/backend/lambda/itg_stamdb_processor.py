@@ -18,6 +18,8 @@ import density
 import hash
 import patterns
 
+import traceback
+
 DYNAMODB_TABLE = environ['DYNAMODB_TABLE']  # itg-stamdb-breakdowns
 
 s3 = boto3.resource('s3')
@@ -46,14 +48,20 @@ class ChartStreamData(TypedDict):
 def calculate_stream_data(chart: Chart, timing_data: TimingData) -> ChartStreamData:
     rating = int(chart.meter) if chart.meter is not None else 1
     bpm = float(timing_data.bpms[0].value) if len(timing_data.bpms) > 0 else 120  # TODO handle streams of multiple bpms
-    for beat_scaling in [1, 1.25, 1.5, 2]:
+    beat_scaling = 1
+    while True:
         bd = breakdown.get_breakdown(chart, beat_scaling)
         totals = breakdown.count_totals(bd)
 
         # check if this is the ideal breakdown to use (more 16ths than others)
-        if totals[BSType.STREAM16.name] > totals[BSType.STREAM20.name] and \
-            totals[BSType.STREAM16.name] > totals[BSType.STREAM24.name] and \
-            totals[BSType.STREAM16.name] > totals[BSType.STREAM32.name]:
+        stream_type_name = max(totals.items(), key=lambda x: x[1])[0]
+        if stream_type_name == BSType.STREAM24.name:
+            beat_scaling = 1.5
+        elif stream_type_name == BSType.STREAM32.name:
+            beat_scaling = 2
+        elif stream_type_name == BSType.STREAM20.name:
+            beat_scaling = 1.25
+        else:
             break
     bpm_scaled = bpm * beat_scaling
     stream_total = sum(map(lambda x: x['count'], filter(lambda x: x['type'].name != BSType.BREAK.name, bd)))
@@ -86,6 +94,8 @@ def process_simfile(content):
     items = []
     chart: Chart
     for chart in sim.charts:
+        if chart.stepstype != 'dance-single':  # parse 4-panel charts only
+            continue
         timing_data = TimingData(sim, chart)
         processed_chart = calculate_stream_data(chart, timing_data)
         stream_note_data = breakdown.get_stream_note_data(chart)
@@ -144,7 +154,7 @@ def lambda_handler(event, context):
 
                 process_simfile(content)
         except Exception as e:
-            print(f'ERROR processing message id {message_id}: {e}')
+            print(f'ERROR processing message id {message_id}: {e} - {traceback.format_exc()}')
             failed_messages.append({ 'itemIdentifier': message_id })
     if len(failed_messages) > 0:
         print(f'{failed_messages=}')
