@@ -43,7 +43,8 @@ function ToggleableRow({ song, children }: PropsWithChildren<{ song: Song }>) {
   </>)
 }
 
-export default function StaminaChartTable({ data }: { data: any }) {
+export default function StaminaChartTable({ data }: { data: Song[] }) {
+  data.sort((a, b) => a.bpm - b.bpm);  // ascending sort by bpm
   return (
     <Box display="flex" justifyContent="center">
       <Table.Root size="lg" variant="outline" interactive>
