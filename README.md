@@ -85,12 +85,15 @@ The following endpoints are available:
 
 All AWS resources are managed by **Terraform**. Frontend and backend resources are separated in their own modules.
 
+### 5. ci/cd
+
+Changes to the frontend and infrastructure are re-deployed using **GitHub Actions**.
+
 ## known bugs
 
 Charts with changing bpms are not handled properly for per-stream pattern analysis because some slower streams have a note graph value lower than 16.
 
 ## possible expansions
 
-- ci/cd pipeline using GitHub Actions
 - admin dashboard for ease-of-use file uploading and breakdown editing
 - monitoring using cloudwatch for simfile processing failures, api error rates?
