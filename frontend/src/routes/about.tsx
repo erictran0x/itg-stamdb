@@ -57,7 +57,7 @@ function RouteComponent() {
         Contact Info
       </Heading>
       <p>Email: <a href="mailto:erictran0x@gmail.com">erictran0x@gmail.com</a></p>
-      <p>GitHub repo</p> {/* TODO fill this in */}
+      <p><a href="https://github.com/erictran0x/itg-stamdb">GitHub repo</a></p>
     </Box>
   )
 }

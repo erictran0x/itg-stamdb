@@ -14,6 +14,13 @@ export default defineConfig({
     tsconfigPaths()
   ],
   build: {
-    outDir: '../terraform/modules/frontend/s3_site'
+    outDir: '../terraform/modules/frontend/s3_site',
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name].js`,
+        assetFileNames: `assets/[name].[ext]`
+      }
+    }
   }
 })
