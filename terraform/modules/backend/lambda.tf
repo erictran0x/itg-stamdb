@@ -25,20 +25,20 @@ locals {
     itg_stamdb_search_dbstream_trigger = {
       layers = ["opensearchpy"]
       environment = {
-        OPENSEARCH_HOST  = var.opensearch_url
+        OPENSEARCH_HOST  = var.opensearch_settings.url
         OPENSEARCH_PORT  = 443
-        OPENSEARCH_USER  = var.opensearch_user
-        OPENSEARCH_PASS  = var.opensearch_pass
+        OPENSEARCH_USER  = var.opensearch_settings.user
+        OPENSEARCH_PASS  = var.opensearch_settings.pass
         OPENSEARCH_INDEX = local.opensearch_index_name
       }
     }
     itg_stamdb_search_query = {
       layers = ["opensearchpy"]
       environment = {
-        OPENSEARCH_HOST  = var.opensearch_url
+        OPENSEARCH_HOST  = var.opensearch_settings.url
         OPENSEARCH_PORT  = 443
-        OPENSEARCH_USER  = var.opensearch_user
-        OPENSEARCH_PASS  = var.opensearch_pass
+        OPENSEARCH_USER  = var.opensearch_settings.user
+        OPENSEARCH_PASS  = var.opensearch_settings.pass
         OPENSEARCH_INDEX = local.opensearch_index_name
         DYNAMODB_TABLE   = aws_dynamodb_table.this.name
       }

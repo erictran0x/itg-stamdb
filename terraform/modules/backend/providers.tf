@@ -8,8 +8,8 @@ terraform {
 }
 
 provider "opensearch" {
-  url = var.opensearch_url
+  url = var.opensearch_settings.url
 
-  username = var.opensearch_user
-  password = var.opensearch_pass
+  username = var.opensearch_settings.user
+  password = var.opensearch_settings.pass
 }

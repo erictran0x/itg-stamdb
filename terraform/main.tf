@@ -30,7 +30,5 @@ module "frontend" {
 module "backend" {
   source = "./modules/backend"
 
-  opensearch_url  = var.opensearch_url
-  opensearch_user = var.opensearch_user
-  opensearch_pass = var.opensearch_pass
+  opensearch_settings = var.opensearch_settings
 }
