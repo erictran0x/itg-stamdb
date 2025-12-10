@@ -1,0 +1,40 @@
+name: Redeploy Terraform Infrastructure
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'terraform/**'
+  workflow_dispatch:
+    inputs:
+      message:
+        default: 'Manual run'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  redeploy-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::058264485635:role/GitHubActions-erictran0x-itg-stamdb
+          aws-region: us-west-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Initialize Terraform
+        working-directory: ./terraform
+        run: terraform init -input=false
+
+      - name: Apply Terraform changes
+        working-directory: ./terraform
+        run: terraform apply -auto-approve

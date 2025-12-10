@@ -1,0 +1,49 @@
+name: Upload to S3
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+    inputs:
+      message:
+        default: 'Manual run'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  upload-frontend-to-s3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::058264485635:role/GitHubActions-erictran0x-itg-stamdb
+          aws-region: us-west-1
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies and build
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Sync to S3
+        working-directory: ./terraform/modules/frontend
+        run: |
+          aws s3 sync ./s3_site s3://${{ secrets.AWS_S3_BUCKET_NAME }} --delete
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
