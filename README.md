@@ -1,5 +1,8 @@
 # [itg stamina database](https://d2xk0hpalqd86m.cloudfront.net/)
 
+![frontend status check](https://github.com/erictran0x/itg-stamdb/actions/workflows/frontend-cicd.yml/badge.svg)
+![terraform status check](https://github.com/erictran0x/itg-stamdb/actions/workflows/terraform-cicd.yml/badge.svg)
+
 Demo link: https://d2xk0hpalqd86m.cloudfront.net/ -- custom domain soon™
 
 This website is a large database of StepMania/In The Groove stamina simfiles used in tournaments such as East Coast Stamina and Stamina RPG. All data available should mainly be used as reference points for rating/assigning a difficulty meter to newer simfiles.
