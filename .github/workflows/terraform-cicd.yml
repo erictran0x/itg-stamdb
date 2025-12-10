@@ -35,9 +35,9 @@ jobs:
         working-directory: ./terraform
         run: |
           echo "opensearch_settings = {" > terraform.tfvars
-          echo "  user = ${{ secrets.OPENSEARCH_USER }}" >> terraform.tfvars
-          echo "  pass = ${{ secrets.OPENSEARCH_PASS }}" >> terraform.tfvars
-          echo "  url  = ${{ secrets.OPENSEARCH_URL }}" >> terraform.tfvars
+          echo "  user = \"${{ secrets.OPENSEARCH_USER }}\"" >> terraform.tfvars
+          echo "  pass = \"${{ secrets.OPENSEARCH_PASS }}\"" >> terraform.tfvars
+          echo "  url  = \"${{ secrets.OPENSEARCH_URL }}\"" >> terraform.tfvars
           echo "}" >> terraform.tfvars
 
       - name: Initialize Terraform
