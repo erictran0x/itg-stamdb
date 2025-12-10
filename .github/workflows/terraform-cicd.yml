@@ -46,4 +46,4 @@ jobs:
 
       - name: Apply Terraform changes
         working-directory: ./terraform
-        run: terraform apply -auto-approve
+        run: terraform apply -input=false -auto-approve
