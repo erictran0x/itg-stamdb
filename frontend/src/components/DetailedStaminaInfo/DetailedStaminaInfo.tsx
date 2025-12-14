@@ -9,6 +9,7 @@ interface DetailedSong {
   credit: string,
   jumps_total: number,
   note_graph_points: number[],
+  note_count_per_measure: number[],
   pattern_data: any,
   rating: number,
   steps_total: number,
@@ -18,38 +19,41 @@ interface DetailedSong {
   title: string
 }
 
-function splitNoteGraphPointsBySections(note_graph_points: number[]) {
+type SectionBlock = [number, number][][];
+
+function splitNoteGraphPointsBySections(note_count_per_measure: number[]): [SectionBlock, SectionBlock, number] {
   // given an array of numbers from 0 - some number, split array into sections of values 16+ and 15-
   // ex: [16, 16, 16, 16, 15, 16, 16, 16] should be
   // [[(0, 16), (1, 16), (2, 16), (3, 16)], [(4, 15)], [(5, 16), (6, 16), (7, 16)]]
   const processed: Array<Array<[number, number]>> = [];
   let isStream = true;
-  for (const [index, item] of note_graph_points.entries()) {
-    if (processed.length === 0) {
+  for (const [index, item] of note_count_per_measure.entries()) {
+    if (processed.length === 0 || (isStream && item < 16) || (!isStream && item >= 16)) {
       processed.push([]);
       isStream = item >= 16;
-    } else {
-      if ((isStream && item < 16) || (!isStream && item >= 16)) {
-        processed.push([]);
-        isStream = item >= 16;
-      }
     }
     processed[processed.length - 1].push([index, item]);
   }
   const streams = [];
   const breaks = [];
+  let maxX = 0;
   for (const section of processed) {
     if (section[0][1] >= 16) {
+      section.push([section[section.length - 1][0] + 1, 0]);
+      section.unshift([section[0][0] - 1, 0]);
       streams.push(section);
+      maxX = section[section.length - 1][0];
     } else {
       if (section.length === 1) {
-        section.push([section[0][0] + 1, 0]);
+        section.push([section[section.length - 1][0] + 1, 0]);
         section.unshift([section[0][0] - 1, 0]);
       }
       breaks.push(section);
+      maxX = section[section.length - 1][0];
     }
   }
-  return [streams, breaks];
+  console.log(streams, breaks, maxX);
+  return [streams, breaks, maxX];
 }
 
 function getPatternsByIndex(pattern_data: Record<string, number[]>, index: number) {
@@ -101,21 +105,24 @@ function ChartInfoAndPatternAnalysis({ data }: { data: DetailedSong }) {
   )
 }
 
-function DensityGraph({ pattern_data, note_graph_points }: { pattern_data: any, note_graph_points: number[] }) {
-  const [streams, breaks] = splitNoteGraphPointsBySections(note_graph_points);
+function DensityGraph(
+  { pattern_data, note_graph_points, note_count_per_measure }:
+    { pattern_data: any, note_graph_points: number[], note_count_per_measure: number[] }
+) {
+  const [streams, breaks, maxX] = splitNoteGraphPointsBySections(note_count_per_measure ?? note_graph_points);
   const data = {
     datasets: [
       ...streams.map((points) => ({
         fill: 'origin',
         showLine: true,
-        data: points.map(([x, y]) => ({ x, y })),
+        data: points.map(([x, _]) => ({ x, y: note_graph_points[x] })),
         backgroundColor: 'rgb(67, 147, 213)',
         pointRadius: 0
       })),
       ...breaks.map((points) => ({
         fill: 'origin',
         showLine: true,
-        data: points.map(([x, y]) => ({ x, y })),
+        data: points.map(([x, _]) => ({ x, y: note_graph_points[x] })),
         backgroundColor: 'rgba(255, 99, 132, 0.5)',
         pointRadius: 0
       })),
@@ -126,8 +133,10 @@ function DensityGraph({ pattern_data, note_graph_points }: { pattern_data: any, 
     maintainAspectRatio: false,
     scales: {
       x: {
+        min: 0,
+        max: maxX,
         ticks: {
-          display: false
+          display: true
         }
       },
       y: {
@@ -231,6 +240,6 @@ export default function DetailedStaminaInfo({ hash }: { hash: string }) {
   return <>
     <ChartInfoAndPatternAnalysis data={data} />
     <br />
-    <DensityGraph pattern_data={data.pattern_data} note_graph_points={data.note_graph_points} />
+    <DensityGraph pattern_data={data.pattern_data} note_graph_points={data.note_graph_points} note_count_per_measure={data.note_count_per_measure} />
   </>
 }
