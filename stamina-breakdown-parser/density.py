@@ -35,7 +35,32 @@ def get_density(simfile: SMSimfile | SSCSimfile, chart: SMChart | SSCChart):
             curr_bpm, next_bpm = get_curr_and_next_bpms()
         meas = note.beat // 4  # 4 beats in a measure
         if meas > last_meas:
+            note_speed_per_measure[-1] = round(note_speed_per_measure[-1], 1)
             note_speed_per_measure.extend([0] * (meas - last_meas))
             last_meas = meas
         note_speed_per_measure[-1] += (float(curr_bpm.value) / max_bpm_value)
+    note_speed_per_measure[-1] = round(note_speed_per_measure[-1], 1)
     return note_speed_per_measure
+
+
+def get_note_counts(chart: SMChart | SSCChart):
+    """
+    basically get_density but does not adjust based on bpm
+    """
+    note_data = NoteData(chart)
+    group_iter = group_notes(
+        note_data,
+        include_note_types=TAPPABLE_NOTES,
+        same_beat_notes=SameBeatNotes.JOIN_ALL
+    )
+
+    note_counts: list[int] = [0]
+    last_meas = 0
+    for group in group_iter:
+        note = group[0]
+        meas = note.beat // 4
+        if meas > last_meas:
+            note_counts.extend([0] * (meas - last_meas))
+            last_meas = meas
+        note_counts[-1] += 1
+    return note_counts

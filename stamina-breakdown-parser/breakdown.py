@@ -2,10 +2,12 @@ from enum import Enum
 from functools import reduce
 from typing import TypedDict
 
+from simfile import SSCSimfile
 from simfile.notes import NoteData, NoteType
 from simfile.notes.group import group_notes, SameBeatNotes
-from simfile.sm import SMChart
+from simfile.sm import SMChart, SMSimfile
 from simfile.ssc import SSCChart
+from simfile.timing import TimingData
 
 TAPPABLE_NOTES = frozenset([
     NoteType.TAP, NoteType.HOLD_HEAD, NoteType.ROLL_HEAD
@@ -59,6 +61,7 @@ def format_breakdown_to_string(breakdown: Breakdown) -> str:
 
 
 def get_breakdown(chart: SMChart | SSCChart, beat_scaling: float = 1) -> Breakdown:
+    NOTE_COUNT_OFFSET = 2
     note_data = NoteData(chart)
     group_iter = group_notes(
         note_data,
@@ -81,13 +84,13 @@ def get_breakdown(chart: SMChart | SSCChart, beat_scaling: float = 1) -> Breakdo
     ]
     last_section_type = breakdown[-1]['type']
     for num_notes in num_notes_in_meas:
-        if num_notes < 16:
+        if num_notes < 16 - NOTE_COUNT_OFFSET:
             curr_section_type = BreakdownSectionType.BREAK
-        elif num_notes < 20:
+        elif num_notes < 20 - NOTE_COUNT_OFFSET:
             curr_section_type = BreakdownSectionType.STREAM16
-        elif num_notes < 24:
+        elif num_notes < 24 - NOTE_COUNT_OFFSET:
             curr_section_type = BreakdownSectionType.STREAM20
-        elif num_notes < 32:
+        elif num_notes < 32 - NOTE_COUNT_OFFSET:
             curr_section_type = BreakdownSectionType.STREAM24
         else:
             curr_section_type = BreakdownSectionType.STREAM32
@@ -140,3 +143,35 @@ def get_stream_note_data(chart: SMChart | SSCChart) -> list[Stream]:
             note_data_in_meas[i-1]['note_data'].extend(note_data_in_meas[i]['note_data'])
             del note_data_in_meas[i]
     return note_data_in_meas
+
+
+def get_adjusted_bpm(timing_data: TimingData, chart: SMChart | SSCChart, beat_scaling=1) -> float:
+    bpms = timing_data.bpms
+    note_data = NoteData(chart)
+    group_iter = group_notes(
+        note_data,
+        include_note_types=TAPPABLE_NOTES,
+        same_beat_notes=SameBeatNotes.JOIN_ALL
+    )
+
+    last_meas = 0
+    curr_note_count = 0
+    curr_bpm_index = 0
+    mean = 0
+    count = 0
+    for group in group_iter:
+        note = group[0]
+        meas = (note.beat * beat_scaling) // 4
+        while curr_bpm_index < len(bpms) - 1 and note.beat >= bpms[curr_bpm_index + 1].beat:
+            curr_bpm_index += 1
+        curr_bpm = bpms[curr_bpm_index]
+        if meas > last_meas:
+            if curr_note_count >= 16:
+                new_number = float(curr_bpm.value) * beat_scaling
+                delta = new_number - mean
+                count += 1
+                mean += delta / count
+            curr_note_count = 0
+            last_meas = meas
+        curr_note_count += 1
+    return mean

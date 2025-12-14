@@ -63,12 +63,11 @@ def calculate_stream_data(chart: Chart, timing_data: TimingData) -> ChartStreamD
             beat_scaling = 1.25
         else:
             break
-    bpm_scaled = bpm * beat_scaling
     stream_total = sum(map(lambda x: x['count'], filter(lambda x: x['type'].name != BSType.BREAK.name, bd)))
     measures_total = sum(map(lambda x: x['count'], bd))
     return {
         'rating': rating,
-        'bpm': bpm_scaled,
+        'bpm': breakdown.get_adjusted_bpm(timing_data, chart, beat_scaling),
         'stream_breakdown': breakdown.format_breakdown_to_string(bd),
         'stream_density': stream_total / measures_total if measures_total > 0 else 0,
         'stream_total': stream_total
@@ -111,6 +110,7 @@ def process_simfile(content):
                 anchor_result[arrow_key].append(count)
         bucket.put_object(
             Key=f'{chart_hash}.json',
+            ContentType='application/json',
             Body=json.dumps({
                 'title': format_title(chart),
                 'artist': sim.artist,
@@ -119,6 +119,7 @@ def process_simfile(content):
                 'steps_total': count_steps(note_data),
                 'jumps_total': count_jumps(note_data),
                 'note_graph_points': density.get_density(sim, chart),
+                'note_count_per_measure': density.get_note_counts(chart),
                 'pattern_data': {
                     **{ pattern.name: patterns.count_patterns(stream_note_data, pattern) for pattern in patterns.PatternType },
                     **anchor_result
