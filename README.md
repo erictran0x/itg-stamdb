@@ -94,7 +94,7 @@ Changes to the frontend and infrastructure are re-deployed using **GitHub Action
 
 ## known bugs
 
-Charts with changing bpms are not handled properly for per-stream pattern analysis because some slower streams have a note graph value lower than 16.
+hopefully fixed as of 12/13/2025 - Charts with changing bpms are not handled properly for per-stream pattern analysis because some slower streams have a note graph value lower than 16.
 
 ## possible expansions
 
