@@ -40,7 +40,7 @@ jobs:
           echo "  url  = \"${{ secrets.OPENSEARCH_URL }}\"" >> terraform.tfvars
           echo "}" >> terraform.tfvars
           echo "" >> terraform.tfvars
-          echo "github_token = \"${{ secrets.MY_GITHUB_TOKEN }}\""
+          echo "github_token = \"${{ secrets.MY_GITHUB_TOKEN }}\"" >> terraform.tfvars
 
       - name: Initialize Terraform
         working-directory: ./terraform
