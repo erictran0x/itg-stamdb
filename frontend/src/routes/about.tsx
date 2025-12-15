@@ -22,12 +22,7 @@ function GithubCommits() {
   const { data, isLoading, error, isError } = useQuery({
     queryKey: ['github-commits'],
     queryFn: async () => {
-      const response = await fetch('https://corsproxy.io/?url=https://api.github.com/repos/erictran0x/itg-stamdb/commits?per_page=5', {
-        headers: {
-          'Accept': 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      });
+      const response = await fetch('https://d2xk0hpalqd86m.cloudfront.net/api/changelog');
       return await response.json();
     }
   })
@@ -43,14 +38,14 @@ function GithubCommits() {
       <Table.Root size="lg" variant="outline">
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeader>Date</Table.ColumnHeader>
+            <Table.ColumnHeader width="auto" whiteSpace="nowrap">Date</Table.ColumnHeader>
             <Table.ColumnHeader>Description</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {data.map((x: GitCommitResult) => (
+          {data.response.slice(0, 5).map((x: GitCommitResult) => (
             <Table.Row key={x.sha}>
-              <Table.Cell>{new Date(x.commit.author.date).toLocaleString()}</Table.Cell>
+              <Table.Cell width="auto" whiteSpace="nowrap">{new Date(x.commit.author.date).toLocaleString()}</Table.Cell>
               <Table.Cell>{x.commit.message}</Table.Cell>
             </Table.Row>
           ))}
