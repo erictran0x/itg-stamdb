@@ -62,15 +62,3 @@ resource "aws_s3_bucket_website_configuration" "frontend_website_config" {
     suffix = "index.html"
   }
 }
-
-resource "aws_s3_object" "website_files" {
-  for_each = fileset("${path.module}/s3_site", "**")
-
-  bucket = aws_s3_bucket.frontend_bucket.id
-
-  key    = each.value
-  source = "${path.module}/s3_site/${each.value}"
-
-  content_type = lookup(local.mime_types, split(".", each.value)[length(split(".", each.value)) - 1], "application/octet-stream")
-  etag         = filemd5("${path.module}/s3_site/${each.value}")
-}
