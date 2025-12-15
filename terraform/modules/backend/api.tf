@@ -49,6 +49,16 @@ resource "aws_apigatewayv2_integration" "count_songs" {
   payload_format_version = "2.0"
 }
 
+resource "aws_apigatewayv2_integration" "changelog" {
+  api_id = aws_apigatewayv2_api.this.id
+
+  integration_method = "POST"
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.functions["itg_stamdb_proxy_github_commits"].invoke_arn
+
+  payload_format_version = "2.0"
+}
+
 resource "aws_apigatewayv2_route" "search_title" {
   api_id = aws_apigatewayv2_api.this.id
 
@@ -77,6 +87,13 @@ resource "aws_apigatewayv2_route" "count_songs" {
   target    = "integrations/${aws_apigatewayv2_integration.count_songs.id}"
 }
 
+resource "aws_apigatewayv2_route" "changelog" {
+  api_id = aws_apigatewayv2_api.this.id
+
+  route_key = "GET /changelog"
+  target    = "integrations/${aws_apigatewayv2_integration.changelog.id}"
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id = aws_apigatewayv2_api.this.id
 
@@ -89,6 +106,7 @@ resource "aws_lambda_permission" "permissions" {
     "itg_stamdb_db_batchgetitem",
     "itg_stamdb_db_itemcount",
     "itg_stamdb_db_queryratingsortbpm",
+    "itg_stamdb_proxy_github_commits",
     "itg_stamdb_search_query"
   ])
 

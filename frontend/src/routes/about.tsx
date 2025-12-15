@@ -1,11 +1,64 @@
-import { Box, Heading } from '@chakra-ui/react'
+import { Alert, Box, Heading, Table } from '@chakra-ui/react'
 import { Tooltip } from '@/components/ui/tooltip'
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 export const Route = createFileRoute('/about')({
   component: RouteComponent,
 })
+
+interface GitCommitResult {
+  sha: string;
+  commit: {
+    author: {
+      date: string
+    };
+    message: string;
+  }
+}
+
+function GithubCommits() {
+  const { data, isLoading, error, isError } = useQuery({
+    queryKey: ['github-commits'],
+    queryFn: async () => {
+      const response = await fetch('https://corsproxy.io/?url=https://api.github.com/repos/erictran0x/itg-stamdb/commits?per_page=5', {
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      });
+      return await response.json();
+    }
+  })
+  if (isLoading) return <div>loading</div>;
+  if (isError) return (
+    <Alert.Root status="error">
+      <Alert.Indicator />
+      <Alert.Title>{error.name}: {error.message}</Alert.Title>
+    </Alert.Root>
+  )
+  return (
+    <Box display="flex" justifyContent="center">
+      <Table.Root size="lg" variant="outline">
+        <Table.Header>
+          <Table.Row>
+            <Table.ColumnHeader>Date</Table.ColumnHeader>
+            <Table.ColumnHeader>Description</Table.ColumnHeader>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {data.map((x: GitCommitResult) => (
+            <Table.Row key={x.sha}>
+              <Table.Cell>{new Date(x.commit.author.date).toLocaleString()}</Table.Cell>
+              <Table.Cell>{x.commit.message}</Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table.Root>
+    </Box>
+  )
+}
 
 function ClickableTooltip({ content, children }: { content: string, children?: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +111,11 @@ function RouteComponent() {
       </Heading>
       <p>Email: <a href="mailto:erictran0x@gmail.com">erictran0x@gmail.com</a></p>
       <p><a href="https://github.com/erictran0x/itg-stamdb">GitHub repo</a></p>
+      <br />
+      <Heading as="h1" size="3xl" mb={4}>
+        Git Changelog (includes frontend + iac)
+      </Heading>
+      <GithubCommits />
     </Box>
   )
 }

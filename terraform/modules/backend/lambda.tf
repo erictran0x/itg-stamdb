@@ -22,6 +22,11 @@ locals {
         DYNAMODB_TABLE = aws_dynamodb_table.this.name
       }
     }
+    itg_stamdb_proxy_github_commits = {
+      environment = {
+        GITHUB_TOKEN = var.github_token
+      }
+    }
     itg_stamdb_search_dbstream_trigger = {
       layers = ["opensearchpy"]
       environment = {
@@ -281,7 +286,7 @@ resource "aws_iam_role_policy_attachment" "customer_managed" {
 }
 
 resource "aws_iam_role_policy_attachment" "basic_exec_roles" {
-  for_each = local.function_policies
+  for_each = local.functions
 
   role       = aws_iam_role.lambda_execs[each.key].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
