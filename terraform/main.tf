@@ -31,4 +31,5 @@ module "backend" {
   source = "./modules/backend"
 
   opensearch_settings = var.opensearch_settings
+  github_token        = var.github_token
 }

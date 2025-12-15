@@ -6,3 +6,8 @@ variable "opensearch_settings" {
   })
   sensitive = true
 }
+
+variable "github_token" {
+  type      = string
+  sensitive = true
+}
