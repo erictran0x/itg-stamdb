@@ -5,7 +5,7 @@ import { createFileRoute, getRouteApi, stripSearchParams } from '@tanstack/react
 import z from 'zod';
 
 const searchSchema = z.object({
-  rating: z.number().default(11),
+  rating: z.number().default(12),
   bpm_from: z.number().default(120),
   bpm_to: z.number().default(500),
   show_neighboring: z.boolean().default(true)
