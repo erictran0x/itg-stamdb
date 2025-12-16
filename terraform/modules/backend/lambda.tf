@@ -8,26 +8,35 @@ locals {
 
   functions = { # layers and environment vars go here
     itg_stamdb_db_batchgetitem = {
+      reserved_concurrent_executions = 50
+
       environment = {
         DYNAMODB_TABLE = aws_dynamodb_table.this.name
       }
     }
     itg_stamdb_db_itemcount = {
+      reserved_concurrent_executions = 50
+
       environment = {
         DYNAMODB_TABLE = aws_dynamodb_table.this.name
       }
     }
     itg_stamdb_db_queryratingsortbpm = {
+      reserved_concurrent_executions = 50
+
       environment = {
         DYNAMODB_TABLE = aws_dynamodb_table.this.name
       }
     }
     itg_stamdb_proxy_github_commits = {
+      reserved_concurrent_executions = 50
       environment = {
         GITHUB_TOKEN = var.github_token
       }
     }
     itg_stamdb_search_dbstream_trigger = {
+      reserved_concurrent_executions = 100
+
       layers = ["opensearchpy"]
       environment = {
         OPENSEARCH_HOST  = var.opensearch_settings.url
@@ -38,6 +47,8 @@ locals {
       }
     }
     itg_stamdb_search_query = {
+      reserved_concurrent_executions = 50
+
       layers = ["opensearchpy"]
       environment = {
         OPENSEARCH_HOST  = var.opensearch_settings.url
@@ -49,6 +60,8 @@ locals {
       }
     }
     itg_stamdb_processor = {
+      reserved_concurrent_executions = 500
+
       layers  = ["stamina-breakdown-parser"]
       timeout = 180
       environment = {
@@ -244,6 +257,8 @@ resource "aws_lambda_function" "functions" {
   filename      = data.archive_file.lambda_functions[each.key].output_path
   layers        = [for name in lookup(each.value, "layers", []) : aws_lambda_layer_version.dependencies[name].arn]
   timeout       = lookup(each.value, "timeout", 3)
+
+  reserved_concurrent_executions = lookup(each.value, "reserved_concurrent_executions", -1)
 
   source_code_hash = data.archive_file.lambda_functions[each.key].output_base64sha256
 
