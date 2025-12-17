@@ -52,9 +52,10 @@ def calculate_stream_data(chart: Chart, timing_data: TimingData) -> ChartStreamD
     while True:
         bd = breakdown.get_breakdown(chart, beat_scaling)
         totals = breakdown.count_totals(bd)
+        totals_no_break = list(filter(lambda x: x[0] != BSType.BREAK.name, totals.items()))
 
         # check if this is the ideal breakdown to use (more 16ths than others)
-        stream_type_name = max(totals.items(), key=lambda x: x[1])[0]
+        stream_type_name = max(totals_no_break, key=lambda x: x[1])[0]
         if stream_type_name == BSType.STREAM24.name:
             beat_scaling = 1.5
         elif stream_type_name == BSType.STREAM32.name:
