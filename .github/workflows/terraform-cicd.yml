@@ -18,6 +18,8 @@ permissions:
 jobs:
   redeploy-terraform:
     runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
