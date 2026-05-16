@@ -43,7 +43,7 @@ function GithubCommits() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {data.response.slice(0, 5).map((x: GitCommitResult) => (
+          {data.response.slice(0, 3).map((x: GitCommitResult) => (
             <Table.Row key={x.sha}>
               <Table.Cell width="auto" whiteSpace="nowrap">{new Date(x.commit.author.date).toLocaleString()}</Table.Cell>
               <Table.Cell>{x.commit.message}</Table.Cell>
