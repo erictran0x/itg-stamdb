@@ -94,7 +94,7 @@ function ChartInfoAndPatternAnalysis({ data }: { data: DetailedSong }) {
       <br />
       <p>--- Pattern Analysis ---</p>
       <p>Candles: {analysis.candles}</p>
-      <p>Candle Density: {analysis.candleDensity} per measure</p>
+      <p>Candle Density: {analysis.candleDensity}</p>
       <br />
       <p>Anchors: {analysis.anchors}</p>
       <p>Boxes: {analysis.boxes}</p>
