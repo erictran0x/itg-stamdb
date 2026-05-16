@@ -39,15 +39,11 @@ function splitNoteGraphPointsBySections(note_count_per_measure: number[]): [Sect
   let maxX = 0;
   for (const section of processed) {
     if (section[0][1] >= 16) {
-      section.push([section[section.length - 1][0] + 1, 0]);
-      section.unshift([section[0][0] - 1, 0]);
       streams.push(section);
       maxX = section[section.length - 1][0];
     } else {
-      if (section.length === 1) {
-        section.push([section[section.length - 1][0] + 1, 0]);
-        section.unshift([section[0][0] - 1, 0]);
-      }
+      section.push([section[section.length - 1][0] + 1, 0]);
+      section.unshift([section[0][0] - 1, 0]);
       breaks.push(section);
       maxX = section[section.length - 1][0];
     }
@@ -164,7 +160,7 @@ function DensityGraph(
       tooltip: {
         displayColors: false,
         animation: {
-          duration: 150,
+          duration: 10,
         },
         callbacks: {
           title: (context: TooltipItem<any>[]) => {
@@ -172,6 +168,7 @@ function DensityGraph(
             return `Stream ${context[0].datasetIndex + 1}`;
           },
           label: (context: TooltipItem<any>) => {
+            console.log(context);
             const index = context.datasetIndex;
             const analysis = outputPatternAnalysis(
               getPatternsByIndex(pattern_data, index), streams[index].length
