@@ -104,7 +104,6 @@ function RouteComponent() {
       <Heading as="h1" size="3xl" mb={4}>
         Contact Info
       </Heading>
-      <p>Email: <a href="mailto:erictran0x@gmail.com">erictran0x@gmail.com</a></p>
       <p><a href="https://github.com/erictran0x/itg-stamdb">GitHub repo</a></p>
       <br />
       <Heading as="h1" size="3xl" mb={4}>
