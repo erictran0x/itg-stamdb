@@ -176,8 +176,9 @@ function DensityGraph(
             return [
               `Total measures: ${streams[index].length} (bursts: ${streams[index].filter((x) => x[1] > 16).length})`,
               `Candles: ${analysis.candles} - ${analysis.candleDensity}`,
-              `Boxes: ${analysis.boxes}`,
+              '',
               `Anchors: ${analysis.anchors}`,
+              `Boxes: ${analysis.boxes}`,
               `Doritos: ${analysis.doritos}`,
               `Sweeps: ${analysis.sweeps}`,
               `Triangles: ${analysis.triangles}`
